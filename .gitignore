@@ -1,0 +1,10 @@
+.DS_Store
+libmx/libmx.a
+libmx/obj
+test
+pathfinder
+**/.DS_Store
+**/._.DS_Store
+._.DS_Store
+*.o
+*.out
