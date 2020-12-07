@@ -10,7 +10,7 @@ char *mx_file_to_str(const char *file) {
 		close(file1);
 		mx_printerr("error: file ");
         mx_printerr(file); 
-        mx_printerr(" does not exis\n");
+        mx_printerr(" does not exist\n");
 		exit(-1);
 		return NULL;
 	}

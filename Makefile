@@ -12,7 +12,7 @@ LMXI	:=	libmx/inc
 INC		=	pathfinder.h
 INCS	=	$(addprefix $(INCD)/, $(INC))
 
-SRC		= 	main.c
+SRC		= 	main.c check.c parse_file.c pathfinder.c get_index_in_strarr.c delete_duplicate.c
 
 SRCS	=	$(addprefix $(SRCD)/, $(SRC))
 OBJS	=	$(addprefix $(OBJD)/, $(SRC:%.c=%.o))

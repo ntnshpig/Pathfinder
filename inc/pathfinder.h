@@ -2,25 +2,19 @@
 #define PATHFINDER_H
 
 #include "libmx.h"
-#include "limits.h"
 
-typedef struct s_graph {
-    size_t sum;
-    size_t size;
-    bool **visited;
-    char **vertices;
-    size_t **dependences;
-} t_graph;
+bool correct_digit(const char *num);
+bool correct_word(const char *word);
+bool correct_line(const char *from, const char *to, const char *bridge);
+void check_extra_enter(char *str);
 
-t_graph *mx_create_graph(size_t);
-void mx_delete_graph(t_graph **);
-void mx_push_vertex(t_graph **, const char *);
-void mx_set_dependences(t_graph **, const char*, const char *, const char *);
-void mx_dijkstra(t_graph **, const char *);
-int mx_get_vertex_index(t_graph *, const char *);
-size_t mx_get_last_vertex_index(t_graph *);
-bool mx_check_isduplicate(t_graph *, const char *, const char *);
-bool mx_isvalid(const char *, const char *, const char *);
-bool mx_check_if_sum_is_too_big(t_graph *);
+int get_index_in_strarr(char **arr, char *sub);
+
+char **without_duplicate(char **arr, int lines, int dif_isl);
+
+void parse_file(const char *file_name);
+
+void find_path(char **islands, int **a, int begin_index, int size);
+int other_path(char **islands, int **a, int begin_index, int size, int res, int end);
 
 #endif
