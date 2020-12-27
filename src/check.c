@@ -27,7 +27,7 @@ bool correct_line(const char *from, const char *to, const char *bridge) {
     return true;
 }
 
-void check_extra_enter(char *str) {
+void check_extra_enter(char *str) {//Enter in the end of file
     int num_n = 0;
     for(int i = 0; i < mx_strlen(str)-1; i++) {
         if(str[i] == '\n') num_n++;

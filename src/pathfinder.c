@@ -1,209 +1,132 @@
 #include "../inc/pathfinder.h"
 
-void find_path(char **islands, int **a, int begin_index, int size) {
-    int min_dist[size]; //minimal distance
-    int visited_node[size]; //visited vertex(only 0 and 1)
-    int temp, minindex, min;
-    
-    //Initialization
-    for (int i = 0; i<size; i++) {
-        min_dist[i] = 2147483647;
-        visited_node[i] = 1;
+t_node **generate_successors(int **matrix, t_node* parent, char **islands, int size) {
+    int index = 0;
+
+    while(mx_strcmp(islands[index], parent->name) != 0) index++;
+
+    t_node **successors = (t_node **) malloc((size) * sizeof(t_node *));
+    for(int i = 0; i < size; i++) {
+        successors[i] = (t_node*)malloc(sizeof(t_node));
+        successors[i] = NULL;
     }
-    min_dist[begin_index] = 0;
-    
-    //Algorothm step
-    do {
-        minindex = 2147483647;
-        min = 2147483647;
-        for (int i = 0; i<size; i++) { // If the vertex is don`t visited 
-            if ((visited_node[i] == 1) && (min_dist[i]<min)) {//and the weight is less than min
-                min = min_dist[i];
-                minindex = i;
-            }
-        }
-        //Add new weight to the current
-        //and compare it with minimal weight
-        if (minindex != 2147483647) {
-        for (int i = 0; i<size; i++) {
-            if (a[minindex][i] > 0) {
-                temp = min + a[minindex][i];
-                if (temp < min_dist[i]) {
-                    min_dist[i] = temp;
-                }
-            }
-        }
-        visited_node[minindex] = 0;
-        }
-    } while (minindex < 2147483647);
-    
-    //Making path from begin_index to every vertex
-    for(int i = begin_index; i < size; i++) {
-        int end = i;
-        int end_index = end;
-        if(min_dist[end_index] == 0 || min_dist[end_index] == 2147483647) continue;
-        int vis_ver[size]; //visited vertex
-        vis_ver[0] = end + 1;
-        int k = 1; //Number of nodes among A and B
-        int weight = min_dist[end];
-        while (end != begin_index) {
-            for (int i = 0; i<size; i++) { //Look all nodes
-                if (a[i][end] != 0)  { //If we have bridge
-                    int temp = weight - a[i][end]; //All ways from prev vertex
-                    if (temp == min_dist[i]) {//If it right we came from this vertex
-                        weight = temp;
-                        end = i;//Previous vertex
-                        vis_ver[k] = i + 1;
-                        k++;
-                    }
-                }
-            }
-        }
 
-        //Path output
-        mx_printstr("========================================\n");
-        //Path
-        mx_printstr("Path: ");
-        mx_printstr(islands[begin_index]);
-        mx_printstr(" -> ");
-        mx_printstr(islands[end_index]);
-        mx_printchar('\n');
-        
-        //Route
-        mx_printstr("Route: ");
-        for (int i = k - 1; i >= 0; i--){
-            mx_printstr(islands[vis_ver[i]-1]);
-            if(i >= 1) mx_printstr(" -> ");
-        }
-
-        //Distance
-        if(k == 2){
-            mx_printstr("\nDistance: ");
-            mx_printint(min_dist[end_index]);
-            mx_printstr("\n========================================\n");
-        } else {
-            mx_printstr("\nDistance: ");
-            mx_printint(a[vis_ver[k-1]-1][vis_ver[k-2]-1]);
-            for (int i = k - 2; i >= 1; i--){
-                mx_printstr(" + ");
-                mx_printint(a[vis_ver[i]-1][vis_ver[i-1]-1]);
-            }
-            mx_printstr(" = ");
-            mx_printint(min_dist[end_index]);
-            mx_printstr("\n========================================\n");
-        }
-        //Find other ways
-        if(k>2){
-            int count_node = k-1;
-            int **cpy_matrix = (int **)malloc((size*size)*sizeof(int));
-            for(int i = 0; i < size; i++){
-                cpy_matrix[i] = (int*)malloc((size) * sizeof(int));
-            }
-            for(int i = 0; i < size; i++){
-                for(int j = 0; j < size; j++){
-                    cpy_matrix[i][j] = a[i][j];
+    for(int i = 0; i < size; i++) {
+        if(i != index && matrix[index][i] != -1 && parent != NULL) {        
+            t_node *temp = parent;
+            bool was = false;
+            int j = 0;
+            while(temp != NULL) {
+                if(mx_strcmp(temp->name, islands[i]) == 0 || j > size) {
+                    was = true;
+                    break;
                 }
+                temp = temp->parent;  
+                j++;              
             }
-            cpy_matrix[vis_ver[count_node-1]-1][vis_ver[count_node-2]-1] = 0;
-            cpy_matrix[vis_ver[count_node-2]-1][vis_ver[count_node-1]-1] = 0;
-            //Looking for other path without 1 connection
-            while(count_node != -1){
-            count_node = other_path(islands, cpy_matrix, begin_index, size, min_dist[end_index], end_index);
-            }
+            if(j > size) break;
+            if (was == false)
+                successors[i] = new_node_gr(parent->all_way + matrix[index][i], islands[i]);
         }
     }
+
+    int lenght = 0;
+    for(int i = 0; i < size; i++) {
+        if(successors[i] != NULL) lenght++;
+    }
+
+    t_node **successors_res = (t_node **) malloc((lenght + 1) * sizeof(t_node *));
+    for(int i = 0; i < lenght + 1; i++)
+        successors_res[i] = NULL;
+
+    lenght = 0;
+    for(int i = 0; i < size; i++) {
+        if(successors[i] != NULL) {
+            successors_res[lenght] = (t_node *) malloc(sizeof(t_node ));
+            successors_res[lenght] = successors[i];
+            lenght++;
+        }
+    }
+
+    return successors_res;
 }
 
-int other_path(char **islands, int **matrix, int begin_index, int size, int res, int end)  {
-    int min_dist[size];
-    int visited_node[size];
-    int temp, minindex, min;
-    //Initialization
-    for (int i = 0; i<size; i++) {
-        min_dist[i] = 2147483647;
-        visited_node[i] = 1;
+t_node **pathfinder_alg(int **arr, char **islands, int cur_x, int goal_x, int size) {
+    t_node *way = new_node_gr(0, islands[cur_x]);
+    t_queue *queue = new_node_qu(way);
+    t_queue *queue_close = new_node_qu(way);
+
+    t_node **paths = (t_node **)malloc(mx_pow(size, 2) * sizeof(t_node *));
+    for(int i = 0; i < size; i++) {
+        paths[i] = (t_node*)malloc(sizeof(t_node));
+        paths[i] = NULL;
     }
-    min_dist[begin_index] = 0;
-    //Algorithm step
-    do { 
-        minindex = 2147483647;
-        min = 2147483647;
-        for (int i = 0; i<size; i++) {
-            if ((visited_node[i] == 1) && (min_dist[i]<min)) {
-                min = min_dist[i];
-                minindex = i;
-            }
-        }
+    int paths_index = 0;
+    int check = 0;
 
-        if (minindex != 2147483647) {
-        for (int i = 0; i<size; i++) {
-            if (matrix[minindex][i] > 0) {
-                temp = min + matrix[minindex][i];
-                if (temp < min_dist[i]) {
-                    min_dist[i] = temp;
-                }
-            }
-        }
-        visited_node[minindex] = 0;
-        }
-    } while (minindex < 2147483647);
+    while (!is_empty(&queue)) {
+        check++;
+        way = queue->node;
+        pop_front(&queue);
 
-    //Build a path
-    int end_index = end;
-    if(min_dist[end_index] == 0 || min_dist[end_index] == 2147483647) return -1;
-    int vis_ver[size];
-    vis_ver[0] = end + 1;
-    int k = 1;
-    int weight = min_dist[end];
-    int dop[size];
-    dop[0] = end + 1;
-    while (end != begin_index) {
-        for (int i = 0; i<size; i++) {
-            if (matrix[i][end] != 0)  {
-                int temp = weight - matrix[i][end];
-                if (temp == min_dist[i]) {
-                    weight = temp;
-                    end = i;
-                    vis_ver[k] = i + 1;
-                    k++;
-                }
+        t_node *temp = way;
+        int j = 0;
+        for(; temp->parent != NULL; j++) {
+            if(j > size)
+                break;
+            temp = temp->parent;
+        }
+        if(j >= size) continue;
+
+        bool in_islands = false;
+        for(int h = 0; h < size; h++) {
+            if(mx_strcmp(way->name, islands[h]) == 0) {
+                in_islands = true;
             }
+        }
+        if(in_islands == false) continue;
+        
+        t_node **successors = generate_successors(arr, way, islands, size);  
+
+        for (int i = 0; successors[i] != NULL; i++)
+            successors[i]->parent = way;
+
+        for (int i = 0; successors[i] != NULL; i++) {
+            if(mx_strcmp(successors[i]->name, islands[goal_x]) == 0) {
+                paths[paths_index] = successors[i];
+                paths_index++;
+            }
+
+            t_queue *temp_queue = queue;
+            bool in_queue = false;
+            while(temp_queue != NULL) {
+                if(mx_strcmp(temp_queue->node->name, successors[i]->name) == 0) {
+                    if(temp_queue->node->all_way < successors[i]->all_way) {
+                        in_queue = true;
+                        break;
+                    }
+                }
+                temp_queue = temp_queue->next;
+            }
+
+            bool in_cose_queue = false;
+            t_queue *queue_close_temp = queue_close;
+            while(queue_close_temp != NULL) {
+                if(mx_strcmp(queue_close_temp->node->name, successors[i]->name) == 0) {
+                    if(queue_close_temp->node->all_way < successors[i]->all_way) {
+                        in_cose_queue = true;
+                        break;
+                    }
+                }
+                queue_close_temp = queue_close_temp->next;
+            }
+
+            
+            if(in_queue == false && in_cose_queue == false) {
+                push_to_qu(&queue, successors[i]);
+                push_to_qu(&queue_close, successors[i]);
+            }  
         }
     }
-
-    //Output the path
-    if(min_dist[end_index] == res) {
-        mx_printstr("========================================\n");
-        //Path
-        mx_printstr("Path: ");
-        mx_printstr(islands[begin_index]);
-        mx_printstr(" -> ");
-        mx_printstr(islands[end_index]);
-        mx_printchar('\n');
-        //Route
-        mx_printstr("Route: ");
-        for (int i = k - 1; i >= 0; i--){
-            mx_printstr(islands[vis_ver[i]-1]);
-            if(i >= 1) mx_printstr(" -> ");
-        }
-        //Distance
-        if(k == 2){
-            mx_printstr("\nDistance: ");
-            mx_printint(min_dist[end_index]);
-        } else {
-            mx_printstr("\nDistance: ");
-            mx_printint(matrix[vis_ver[k-1]-1][vis_ver[k-2]-1]);
-            for (int i = k - 2; i >= 1; i--){
-                mx_printstr(" + ");
-                mx_printint(matrix[vis_ver[i]-1][vis_ver[i-1]-1]);
-            }
-            mx_printstr(" = ");
-            mx_printint(min_dist[end_index]);
-        }
-        mx_printstr("\n========================================\n");
-        }
-    //Delete last connection
-    matrix[vis_ver[k-1]-1][vis_ver[k-2]-1] = 0;
-    matrix[vis_ver[k-2]-1][vis_ver[k-1]-1] = 0;
-    return k;
+    return paths;
 }

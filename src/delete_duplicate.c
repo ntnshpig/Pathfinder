@@ -1,6 +1,6 @@
 #include "../inc/pathfinder.h"
 
-char **without_duplicate(char **arr, int lines, int dif_isl){
+char **without_duplicate(char **arr, int lines, int dif_isl){//Delete dublicate in islands
     char **result = (char **)malloc(dif_isl*9);
     int a = 1;
     result[0] = arr[0];
@@ -13,6 +13,10 @@ char **without_duplicate(char **arr, int lines, int dif_isl){
             mx_printerr("error: invalid number of islands\n");
             exit(0);
         }
+    }
+    if(a < dif_isl) {
+        mx_printerr("error: invalid number of islands\n");
+        exit(0);
     }
     result[a] = arr[(lines*2)-1];
     return result;
