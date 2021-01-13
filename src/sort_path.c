@@ -37,37 +37,22 @@ void sort_path_all(char **path, char **islands, int **arr, unsigned long size){
 }
 
 void sort_path_names(char **path, char **islands, unsigned long size){
-    int *path_to_num = (int *)malloc((size)*sizeof(int));
-    for(unsigned long i = 0; i < size; i++){
-        path_to_num[i] = 10;
-    }
-    for(unsigned long i = 0; i < size; i++){
-        char **tmp_without_num = mx_strsplit(path[i], '|');
-        char **tmp = mx_strsplit(tmp_without_num[0], ',');
-        for(int j =0; tmp[j]; j++){
-            path_to_num[i] += get_index_in_strarr(islands, tmp[j]);
-            path_to_num[i] *= 10;
-        }
-    }
     for(unsigned long i = 0; i < size; i++){
         for(unsigned long j = 0; j < size-1; j++){
-            if(amount_of_num(path_to_num[j]) < amount_of_num(path_to_num[j+1])){
-                int tmp = path_to_num[j];
-                path_to_num[j] = path_to_num[j+1];
-                path_to_num[j+1] = tmp;
-                char *tmp_path = mx_strdup(path[j]);
-                path[j] = mx_strdup(path[j+1]);
-                path[j+1] = mx_strdup(tmp_path);
-            }
-            if(amount_of_num(path_to_num[j]) == amount_of_num(path_to_num[j+1])){
-                if(path_to_num[j] > path_to_num[j+1]){
-                    int tmp = path_to_num[j];
-                    path_to_num[j] = path_to_num[j+1];
-                    path_to_num[j+1] = tmp;
+            char **tmp_without_num1 = mx_strsplit(path[j], '|');
+            char **tmp_without_num2 = mx_strsplit(path[j+1], '|');
+            char **tmp1 = mx_strsplit(tmp_without_num1[0], ',');
+            char **tmp2 = mx_strsplit(tmp_without_num2[0], ',');
+            int z = 1;
+            while(true){
+                if(!tmp1[z] || !tmp2[z]) break;
+                if(get_index_in_strarr(islands, tmp1[z]) > get_index_in_strarr(islands, tmp2[z]) && mx_strcmp(tmp1[z-1], tmp2[z-1]) == 0) {
                     char *tmp_path = mx_strdup(path[j]);
                     path[j] = mx_strdup(path[j+1]);
                     path[j+1] = mx_strdup(tmp_path);
+                    break;
                 }
+                z++;
             }
         }
     }
@@ -78,15 +63,5 @@ int amount_of_el(char **arr) {
     while(arr[res]){
         res++;
     }
-    return res;
-}
-
-int amount_of_num(int num) {
-    int cpy_num = num;
-    int res = 0;
-    do {
-        res++;
-        cpy_num /=10;
-    } while (cpy_num  != 0);
     return res;
 }
